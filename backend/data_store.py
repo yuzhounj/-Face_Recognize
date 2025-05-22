@@ -4,8 +4,24 @@ from datetime import datetime
 from models import db, User, AttendanceRecord # From models.py
 from sqlalchemy.exc import SQLAlchemyError
 
-# Functions for file handling and mock data extraction (do not interact with db directly)
+# --- Private Helper Function for Mock Data Extraction ---
+def _extract_mock_face_data(image_file):
+    """(Internal) 模拟从图片对象中提取人脸特征数据。"""
+    # image_file.filename 可能会因为文件名包含特殊字符而出错，实际库会更健壮
+    # 为了演示，我们假设 filename 是安全的
+    safe_filename_part = os.path.basename(str(image_file.filename)) # 获取文件名部分，尝试转为str
+    mock_face_data = f"mock_feature_vector_{uuid.uuid4().hex[:10]}_for_{safe_filename_part}"
+    print(f"模拟人脸数据提取：为图片 '{safe_filename_part}' 生成特征数据: {mock_face_data}")
+    return mock_face_data
+
+# --- Public Functions ---
+
+# 用于注册：保存照片，并提取特征数据
 def save_photo_and_extract_data(image_file, upload_folder):
+    """
+    保存上传的人脸图片到指定文件夹, 并提取特征数据。
+    返回 (提取到的特征数据, 保存的照片文件名)。
+    """
     photo_filename = f"{uuid.uuid4()}.jpg"
     image_path = os.path.join(upload_folder, photo_filename)
     try:
@@ -13,15 +29,19 @@ def save_photo_and_extract_data(image_file, upload_folder):
         print(f"照片已保存到: {image_path}")
     except Exception as e:
         print(f"保存照片失败: {e}")
-        return None, None
-    mock_face_data = f"mock_feature_vector_{uuid.uuid4().hex[:10]}_for_{image_file.filename}"
-    print(f"模拟人脸数据提取：为图片 '{image_file.filename}' 生成特征数据: {mock_face_data}")
-    return mock_face_data, photo_filename
+        return None, None # 保存失败则返回 None
 
+    # 调用内部函数提取特征数据
+    face_data = _extract_mock_face_data(image_file)
+    return face_data, photo_filename
+
+# 用于签到：仅提取特征数据，不保存照片
 def extract_face_data_without_saving(image_file):
-    mock_face_data = f"mock_feature_vector_{uuid.uuid4().hex[:10]}_for_{image_file.filename}_temp_extraction"
-    print(f"模拟人脸数据提取 (不保存)：为图片 '{image_file.filename}' 生成特征数据: {mock_face_data}")
-    return mock_face_data
+    """
+    处理上传的人脸图片, 仅提取特征数据，不保存原始图片。
+    返回提取到的特征数据 (模拟为字符串)。
+    """
+    return _extract_mock_face_data(image_file)
 
 # Database interaction functions
 def compare_stored_faces(uploaded_face_data):
