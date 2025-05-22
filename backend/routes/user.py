@@ -27,7 +27,7 @@ def register_user_route():
 
 @user_bp.route('/<string:user_id>', methods=['DELETE'])
 @admin_required
-def delete_user_route(user_id): # 函数名修改
+def delete_user_route(user_id):
     upload_folder = current_app.config['UPLOAD_FOLDER']
     # data_store.delete_user_by_id 现在需要 upload_folder 参数
     if data_store.delete_user_by_id(user_id, upload_folder):
